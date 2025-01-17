@@ -12,7 +12,7 @@ namespace GptView.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.url = _config["Url:Local"];
+            ViewBag.url = _config["Url:Remote"];
             return View();
         }
     }
