@@ -1,0 +1,324 @@
+﻿<style>
+    .login-container {
+        width: 500px;
+        padding: 10px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+    .form-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+        .form-row input[type="text"],
+        .form-row input[type="password"] {
+            flex: 1;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+    .login-container button {
+        width: 100%;
+        padding: 1px; /* 縮小高度 */
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+    .login-container p {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .login-container a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .chat-container {
+        width: 100%;
+        max-width: 500px;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background-color: #6200ea;
+        color: #fff;
+        padding: 15px;
+        text-align: center;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+    }
+
+        .chat-messages .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+
+            .chat-messages .message.sent {
+                background-color: #d1c4e9;
+                align-self: flex-end;
+            }
+
+            .chat-messages .message.received {
+                background-color: #e0e0e0;
+                align-self: flex-start;
+            }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        background-color: #fff;
+        border-top: 1px solid #ccc;
+    }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .chat-input button {
+            padding: 10px 15px;
+            font-size: 1em;
+            /* background-color: #6200ea; */
+            background-color: rgb(235, 235, 228);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .chat-input button:hover {
+                background-color: #3700b3;
+            }
+</style>
+<div class="login-container">
+
+    <div class="form-row">
+        <input id="uName" type="text" placeholder="使用者名稱輸入yu" required>
+        <input id="uPwd" type="password" placeholder="密碼輸入123" required>
+    </div>
+    <button id="tokenBtn">申請token</button>
+    <input type="hidden" id="tokenTxt" />
+</div>
+<div class="chat-container">
+    <div class="chat-header">Chat Room</div>
+    <div class="chat-messages" id="chatMessages">
+        <!-- Messages will appear here -->
+    </div>
+    <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="輸入你的問題...">
+        <button id="sendButton" disabled="disabled">Send</button>
+    </div>
+    <input id="urlTxt" type="hidden" value="@ViewBag.Url"/>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        const uName = document.getElementById('uName');
+        const uPwd = document.getElementById('uPwd');
+        const tokenBtn = document.getElementById('tokenBtn');
+        const tokenTxt = document.getElementById('tokenTxt');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const urlTxt = document.getElementById('urlTxt');
+
+        tokenBtn.addEventListener('click', async()=>{
+
+            const url = `${urlTxt.value}/Auth/GetToken`
+            let headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            let body = {
+                "userName":uName.value,
+                "userPwd":uPwd.value,
+                "cnt":0
+            }
+        await fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body)
+        })
+            .then(response => {
+               return response.text();
+            })
+            .then(result=>{
+                if(result=='"帳號或密碼錯誤"'){
+                    alert(result);
+                }
+                else{
+                    tokenTxt.value = result.replace('"','').replace('"','');
+                    sendButton.disabled = false;
+                    sendButton.style.backgroundColor= "#6200ea";
+                }
+            });
+        })
+
+        sendButton.addEventListener('click',async () => {
+            const messageText = messageInput.value.trim();
+            if (messageText) {
+                sendButton.disabled = true;
+                addMessage(messageText, 'sent');
+                messageInput.value = '';
+
+                let beginKey = await BeginApi(messageText);
+                if(beginKey.length == 0){
+                    alert('您提問已達到次數上限或您沒有權限');
+                     sendButton.disabled = false;
+                    return;
+                }
+
+                let msgDiv = addMessage('', 'received');
+                let isComplete = false;
+                while(!isComplete){
+                       let msgObj = await MessageApi(beginKey);
+                       msgDiv.textContent = msgObj.body;
+                       isComplete = msgObj.isComplete;
+                       await delay(3);
+                }
+                await RemoveDictionay(beginKey);
+                sendButton.disabled = false;
+            }
+        });
+
+        function addMessage(text, type) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', type);
+            messageElement.textContent = text;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageElement;
+        }
+
+
+
+
+        async function BeginApi(message) {
+            const token = tokenTxt.value;
+            const url = `${urlTxt.value}/Gpt/BeginGpt`
+        let headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+        }
+        let body = {
+            "question": message
+        }
+        let beginResult = '';
+        await fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body)
+        })
+            .then(response => {
+                if(response.status == 200){
+                    return response.json();
+                }
+                else{
+                    return response;
+                }
+            })
+            .then(result=>{
+                if(typeof result.result != "undefined" && result.statusCode==200){
+                    beginResult = result.result;
+                }
+            });
+            return beginResult;
+        }
+
+
+        async function MessageApi(key) {
+            const url = `${urlTxt.value}/Gpt/GetMessage`;
+            let headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            let body = {
+                "key": key
+            }
+            let messageObj = null;
+            await fetch(url, {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(body)
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(result=>{
+                messageObj = result;
+            });
+            return messageObj;
+        }
+
+        async function RemoveDictionay(key){
+            const url = `${urlTxt.value}/Gpt/RemoveDictionary`;
+            fetch(`${url}?key=${key}`)
+                .then(response=>response.json())
+                .then(result =>{console.log(result);})
+        }
+
+        async function delay(ms){
+            return await new Promise(resolve =>setTimeout(resolve, ms));
+        }
+    </script>
+}
