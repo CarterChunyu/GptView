@@ -205,7 +205,7 @@
                      alert(result.message);
                  } 
                  else if(result.statusCode==403){
-                     alert(`資料庫剛被喚醒請過1分鐘在重新在按一次,${result.message}`);
+                     alert(`資料庫剛被喚醒請過1分鐘在重新在按一次`);
                  } 
                  else{
                      tokenTxt.value = result.token.replace('"','').replace('"','');
