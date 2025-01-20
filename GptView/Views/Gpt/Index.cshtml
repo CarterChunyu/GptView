@@ -165,7 +165,7 @@
         <input type="text" id="messageInput" placeholder="輸入你的問題...">
         <button id="sendButton" disabled="disabled">Send</button>
     </div>
-    <input id="urlTxt" type="hidden" value="@ViewBag.Url"/>
+    <input id="urlTxt" type="hidden" value="@ViewBag.Url" />
 </div>
 
 
@@ -182,7 +182,6 @@
         const urlTxt = document.getElementById('urlTxt');
 
         tokenBtn.addEventListener('click', async()=>{
-
             const url = `${urlTxt.value}/Auth/GetToken`
             let headers = {
                 "Content-Type": "application/json",
@@ -199,17 +198,31 @@
             body: JSON.stringify(body)
         })
             .then(response => {
-               return response.text();
+                return response.json();
             })
             .then(result=>{
-                if(result=='"帳號或密碼錯誤"'){
-                    alert(result);
-                }
-                else{
-                    tokenTxt.value = result.replace('"','').replace('"','');
-                    sendButton.disabled = false;
-                    sendButton.style.backgroundColor= "#6200ea";
-                }
+                 if(result.statusCode==400){
+                     alert(result.message);
+                 } 
+                 else if(result.statusCode==403){
+                     alert(`資料庫剛被喚醒請過1分鐘在重新在按一次,${result.message}`);
+                 } 
+                 else{
+                     tokenTxt.value = result.token.replace('"','').replace('"','');
+                     sendButton.disabled = false;
+                     sendButton.style.backgroundColor= "#6200ea";
+                 }
+
+
+
+                // if(result=='"帳號或密碼錯誤"'){
+                //     alert(result);
+                // }
+                // else{
+                //     tokenTxt.value = result.replace('"','').replace('"','');
+                //     sendButton.disabled = false;
+                //     sendButton.style.backgroundColor= "#6200ea";
+                // }
             });
         })
 
