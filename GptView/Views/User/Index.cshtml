@@ -1,0 +1,171 @@
+﻿@{
+    Layout = "_LayoutNologin";
+   
+    var url = $@"https://accounts.google.com/o/oauth2/v2/auth?
+access_type=online
+&client_id={ViewBag.ClientId}
+&redirect_uri={ViewBag.RedirectUrl}
+&response_type=code
+&scope=email
+&prompt=consent";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(to right, #ff7e5f, #feb47b);
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 300px;
+    }
+
+    .input-field {
+        width: 95%;
+        padding: 8px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        background: #ff7e5f;
+        color: white;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .btn:hover {
+            background: #feb47b;
+        }
+
+    .social-login {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .social-btn {
+        border: none;
+        padding: 8px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .toggle-link {
+        color: #ff7e5f;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+
+    /* alert視窗 */
+    .custom-alert {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        text-align: center;
+    }
+
+        .custom-alert button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+</style>
+
+
+<div class="container">
+    <h2 id="form-title">登入</h2>
+    <form id="auth-form" method="post" action="/User/Index">
+        @Html.AntiForgeryToken()
+        <input type="text" id="username" name="username" class="input-field" placeholder="帳號" required>
+        <input type="password" id="password" name="password" class="input-field" placeholder="密碼" required>
+        <input type="password" id="confirm-password" class="input-field" placeholder="確認密碼" style="display: none;">
+        <input type="text" id="nickname" name="nickname" class="input-field" placeholder="暱稱" style="display: none;">
+        <input type="email" id="email" name="email" class="input-field" placeholder="信箱" style="display: none;">
+        <input type="hidden" id="submittype" name="submittype" value="login" />
+        <button type="submit" class="btn" id="submit-btn">登入</button>
+    </form>
+    <div class="social-login">
+        <a class="button social-btn" style="background: #DB4437; color: white;"
+                href="@url">
+            <i class="fab fa-google"></i>
+        </a>
+        @* <button class="social-btn" style="background: #DB4437; color: white;"
+                onclick="signByGoogel('@ViewBag.clientId', '@ViewBag.RedirectUrl')">
+            <i class="fab fa-google"></i>
+        </button> *@
+        <!-- <button class="social-btn" style="background: #4267B2; color: white;"><i class="fab fa-facebook-f"></i></button>
+        <button class="social-btn" style="background: black; color: white;"><i class="fab fa-apple"></i></button> -->
+    </div>
+    <p id="toggle-text">還沒有帳號？<span class="toggle-link" onclick="toggleForm()">註冊</span></p>
+    <input type="hidden" id="errMsg" value="@ViewBag.ErrorMsg" />
+    <input type="hidden" id="sucMsg" value="@ViewBag.SuccessMsg" />
+</div>
+
+
+
+@section Scripts {
+    <script src="~/js/SweatAlert.js"> </script>
+    <script>
+        let isLogin = true;
+        function toggleForm() {
+            isLogin = !isLogin;
+            document.getElementById("form-title").innerText = isLogin ? "登入" : "註冊";
+            document.getElementById("submit-btn").innerText = isLogin ? "登入" : "註冊";
+            document.getElementById("toggle-text").innerHTML = isLogin ?
+                "還沒有帳號？<span class='toggle-link' onclick='toggleForm()'>註冊</span>" :
+                "已經有帳號？<span class='toggle-link' onclick='toggleForm()'>登入</span>";
+
+            document.getElementById("confirm-password").style.display = isLogin ? "none" : "block";
+            document.getElementById("nickname").style.display = isLogin ? "none" : "block";
+            document.getElementById("email").style.display = isLogin ? "none" : "block";
+            if(isLogin){
+                document.getElementById("confirm-password").removeAttribute("required");
+                document.getElementById("nickname").removeAttribute("required");
+                document.getElementById("email").removeAttribute("required");
+            }
+            else{
+                document.getElementById("confirm-password").setAttribute("required","");
+                document.getElementById("nickname").setAttribute("required","");
+                document.getElementById("email").setAttribute("required","");
+            }
+
+            document.getElementById("submittype").value = isLogin ? "login" : "submit";
+        }
+
+        window.onload = () =>{
+            let err = document.getElementById("errMsg").value;
+            let suc = document.getElementById("sucMsg").value;
+            if(err!='')
+                ErrorAlert('失敗', err);
+            if(suc!='')
+                SuccessAlert('成功', suc);
+        }
+    </script>
+}

@@ -1,0 +1,157 @@
+﻿@using GptView.ViewModels
+@model UserInfoVM
+@{
+    var result = Model?.functionlist?.GroupBy(x => x.parentid)
+                ?.ToDictionary(x => x.Key, y => y)?.OrderBy(x => x.Key)?.ToList();
+
+}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f8f9fa;
+        color: #333;
+    }
+
+    /* 頁首 Header */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        padding: 15px 30px;
+        color: white;
+        font-size: 18px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 左側標題 */
+    .header-title {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    /* 分頁導航 */
+    .nav {
+        display: flex;
+        gap: 15px;
+    }
+
+    .nav-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        position: relative;
+        color: white;
+        transition: background 0.3s ease;
+    }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+    /* 子選單 */
+    .submenu {
+        display: none;
+        position: absolute;
+        top: 40px;
+        right: 0;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+        min-width: 140px;
+    }
+
+        .submenu a {
+            display: block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+            .submenu a:hover {
+                background: #dbe4f3;
+            }
+
+    .nav-item:hover .submenu {
+        display: block;
+    }
+
+    /* 右側登入者資訊 */
+    .user-info {
+        position: relative;
+        cursor: pointer;
+        padding: 10px 15px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+    }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+    .user-submenu {
+        display: none;
+        position: absolute;
+        top: 40px;
+        right: 0;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        min-width: 100px;
+        text-align: center;
+    }
+
+        .user-submenu a {
+            display: block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+            .user-submenu a:hover {
+                background: #dbe4f3;
+            }
+
+    .user-info:hover .user-submenu {
+        display: block;
+    }
+
+</style>
+
+<div class="header">
+    <div class="header-title">🌟 雇捷工程顧問</div>
+
+    <div class="nav">
+        @if (result != null)
+        {
+            foreach (var group in result)
+            {
+                <div class="nav-item">
+                    <span>@group.Value.FirstOrDefault()?.parentname ▼</span>
+                    <div class="submenu">
+                        @foreach (var item in group.Value.OrderBy(x => x.functionid))
+                        {
+                            <a href="@item.functionpath">@item.childname</a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- 右側登入者資訊 -->
+    <div class="user-info">
+        <span>你好, @Model?.username ▼</span>
+        <div class="user-submenu">
+            <a href="/User/Logout">登出</a>
+        </div>
+    </div>
+</div>

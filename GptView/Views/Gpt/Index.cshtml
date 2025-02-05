@@ -1,65 +1,12 @@
-﻿<style>
-    .login-container {
-        width: 500px;
-        padding: 10px;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+﻿@using GptView.Helpers;
+@using GptView.ViewModels;
 
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #333;
-        }
+@{
+    var userInfo = Context.GetObjectFromSession<UserInfoVM>("UserInfo");
+}
 
-    .form-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 5px;
-    }
-
-        .form-row input[type="text"],
-        .form-row input[type="password"] {
-            flex: 1;
-            padding: 4px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-    .login-container button {
-        width: 100%;
-        padding: 1px; /* 縮小高度 */
-        background-color: #007bff;
-        border: none;
-        border-radius: 5px;
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-    }
-
-        .login-container button:hover {
-            background-color: #0056b3;
-        }
-
-    .login-container p {
-        text-align: center;
-        margin-top: 10px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .login-container a {
-        color: #007bff;
-        text-decoration: none;
-    }
-
-        .login-container a:hover {
-            text-decoration: underline;
-        }
-
-    body {
+<style>
+    .body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
@@ -67,7 +14,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 85vh;
     }
 
     .chat-container {
@@ -134,7 +81,6 @@
         .chat-input button {
             padding: 10px 15px;
             font-size: 1em;
-            /* background-color: #6200ea; */
             background-color: rgb(235, 235, 228);
             color: #fff;
             border: none;
@@ -147,39 +93,33 @@
                 background-color: #3700b3;
             }
 </style>
-<div class="login-container">
-
-    <div class="form-row">
-        <input id="uName" type="text" placeholder="使用者名稱輸入yu" required>
-        <input id="uPwd" type="password" placeholder="密碼輸入123" required>
-    </div>
-    <button id="tokenBtn">申請token</button>
-    <input type="hidden" id="tokenTxt" />
-</div>
-<div class="chat-container">
-    <div class="chat-header">Chat Room</div>
-    <div class="chat-messages" id="chatMessages">
-        <!-- Messages will appear here -->
-    </div>
-    <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="輸入你的問題...">
-        <button id="sendButton" disabled="disabled">Send</button>
+<div class="body">
+    <div class="chat-container">
+        <div class="chat-header">Chat Room</div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="輸入你的問題...">
+            <button id="sendButton" disabled="disabled">Send</button>
+            <button id="tokenBtn" style="margin-left: 5px;background-color: #6200ea;">開始</button>
+        </div>
     </div>
     <input id="urlTxt" type="hidden" value="@ViewBag.Url" />
+    <input id="userId" type="hidden" value="@userInfo?.userid" />
+    <input id="tokenTxt" type="hidden" />
 </div>
-
 
 
 @section Scripts {
     <script>
-        const uName = document.getElementById('uName');
-        const uPwd = document.getElementById('uPwd');
         const tokenBtn = document.getElementById('tokenBtn');
-        const tokenTxt = document.getElementById('tokenTxt');
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const urlTxt = document.getElementById('urlTxt');
+        const tokenTxt = document.getElementById('tokenTxt');
+        const userId = document.getElementById('userId');
 
         tokenBtn.addEventListener('click', async()=>{
             const url = `${urlTxt.value}/Auth/GetToken`
@@ -188,9 +128,7 @@
                 "Accept": "application/json"
             }
             let body = {
-                "userName":uName.value,
-                "userPwd":uPwd.value,
-                "cnt":0
+               "UserID": userId.value
             }
         await fetch(url, {
             method: "POST",
@@ -202,27 +140,17 @@
             })
             .then(result=>{
                  if(result.statusCode==400){
-                     alert(result.message);
-                 } 
+                     ErrorAlert('失敗',result.message);
+                 }
                  else if(result.statusCode==403){
-                     alert(`資料庫剛被喚醒請過1分鐘在重新在按一次`);
-                 } 
+                     ErrorAlert('失敗','資料庫剛被喚醒請過1分鐘在重新在按一次');
+                 }
                  else{
+                     SuccessAlert('成功', '可以開始聊天了');
                      tokenTxt.value = result.token.replace('"','').replace('"','');
                      sendButton.disabled = false;
                      sendButton.style.backgroundColor= "#6200ea";
                  }
-
-
-
-                // if(result=='"帳號或密碼錯誤"'){
-                //     alert(result);
-                // }
-                // else{
-                //     tokenTxt.value = result.replace('"','').replace('"','');
-                //     sendButton.disabled = false;
-                //     sendButton.style.backgroundColor= "#6200ea";
-                // }
             });
         })
 
@@ -236,7 +164,7 @@
                 let beginKey = await BeginApi(messageText);
                 if(beginKey.length == 0){
                     alert('您提問已達到次數上限或您沒有權限');
-                     sendButton.disabled = false;
+                    sendButton.disabled = false;
                     return;
                 }
 

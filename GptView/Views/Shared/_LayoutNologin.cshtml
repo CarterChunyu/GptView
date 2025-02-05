@@ -10,9 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
 <body>
-    <header>
-        @await Component.InvokeAsync("FunctionList")
-    </header>
     <div>
         @RenderBody()
     </div>
@@ -20,7 +17,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
-    <script src="~/js/SweatAlert.js"> </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

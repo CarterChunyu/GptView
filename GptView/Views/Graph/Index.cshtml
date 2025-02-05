@@ -1,0 +1,197 @@
+﻿<style>
+    .body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f8ff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+        margin: 0;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    h2 {
+        color: #333;
+    }
+
+    button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+        margin: 5px;
+    }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+    .coordinate-group {
+        margin-bottom: 10px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+        .coordinate-group input, #partition-input, #canvasSize-input, #file-upload {
+            margin: 5px 0;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    #coordinate-container {
+        max-height: 300px;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    #preview-container {
+        margin-top: 10px;
+        display: none;
+        text-align: center;
+    }
+
+    #preview-img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<div class="body">
+    <div class="container">
+        <h2>座標輸入分割圖</h2>
+        <button id="add-coordinates">新增座標</button>
+        <div id="coordinate-container"></div>
+        <br>
+        <input type="number" id="partition-input" placeholder="分成幾等份" min="2">
+        <br>
+        <input type="number" id="canvasSize-input" placeholder="圖片大小不輸入預設500">
+        <br>
+        @*<input type="file" id="file-upload">
+            <br><br>*@
+        <button id="preview-btn">預覽圖片</button>
+        <br>
+        <div id="preview-container">
+            <h3>圖片預覽</h3>
+            <img id="preview-img" src="" alt="圖片預覽">
+        </div>
+        <br>
+        <button id="submit">下載</button>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        document.getElementById('add-coordinates').addEventListener('click', function () {
+            const container = document.getElementById('coordinate-container');
+            const div = document.createElement('div');
+            div.classList.add('coordinate-group');
+            div.innerHTML = `
+                        <input type="number" placeholder="X 軸" class="x-coord">
+                        <input type="number" placeholder="Y 軸" class="y-coord">
+                    `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        });
+
+        document.getElementById('submit').addEventListener('click', () => {
+            GetPic('download');
+        });
+
+        document.getElementById('preview-btn').addEventListener('click', () => {
+            GetPic('preview');
+        });
+
+        function GetPic(option) {
+            const coordinates = [];
+            document.querySelectorAll('.coordinate-group').forEach(group => {
+                const x = group.querySelector('.x-coord').value;
+                const y = group.querySelector('.y-coord').value;
+                if (x && y) {
+                    coordinates.push({ x: parseFloat(x), y: parseFloat(y) });
+                }
+            });
+
+            const partition = document.getElementById('partition-input').value;
+            if (partition < 2) {
+                alert("分成幾等份的數字必須大於1");
+                return;
+            }
+
+            let canvasSize = document.getElementById('canvasSize-input').value;
+            if (canvasSize == '') {
+                canvasSize = 500;
+            }
+
+            fetch(`/api/GraphApi/PostXY?partition=${partition}&canvasSize=${canvasSize}`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "option": option
+                },
+                body: JSON.stringify(coordinates)
+            })
+                .then(async response => {
+                    if (response.status == 403) {
+                        throw new Error(JSON.stringify({ "statusCode": "400", errorMsg: "您沒有操作此API權限有問題請洽雇捷資訊部" }));
+                    }
+                    if (!response.ok) {
+                        const errorMessage = await response.json();
+                        throw new Error(JSON.stringify(errorMessage));
+                    }
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let fileName = 'download.jpg'; // 預設檔名
+
+                    if (contentDisposition) {
+                        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                        if (match && match[1]) {
+                            fileName = decodeURI(match[1]);
+                        }
+                    }
+                    return response.blob().then(blob => ({ blob, fileName }));
+                })
+                .then(({ blob, fileName }) => {
+                    const url = URL.createObjectURL(blob);
+                    if (option == 'download') {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }
+                    if (option == 'preview') {
+                        document.getElementById('preview-img').src = url;
+                        document.getElementById('preview-container').style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    let o = JSON.parse(err.message);
+                    if (o.statusCode == 400) {
+                        ErrorAlert('警告', o.errorMsg);
+                    }
+                });
+        }
+    </script>
+}
