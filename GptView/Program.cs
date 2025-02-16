@@ -24,7 +24,7 @@ DesCrytoHelper.TryDesDecrypt
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
     .WriteTo.File(formatter: new Serilog.Formatting.Json.JsonFormatter(),
-        path: "Logs/log_.txt", rollingInterval: RollingInterval.Day)
+        path: @"Logs/log_.txt", rollingInterval: RollingInterval.Day)
     .WriteTo.MSSqlServer(connectionString: connStr, sinkOptions: new MSSqlServerSinkOptions { TableName = "serverlogs" })
     .MinimumLevel.Information()
     .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
@@ -34,7 +34,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("登入成功");
+    //Log.Information("登入成功");
 
     // Add services to the container.
     builder.Services.AddControllersWithViews();
