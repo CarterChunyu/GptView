@@ -34,6 +34,7 @@ namespace GptView.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+
             ViewBag.RedirectUrl = _sOptions.Value.Status == "local" ?
                 _gOptions.Value.redirect_uri.local : _gOptions.Value.redirect_uri.remote;
             DesCrytoHelper.TryDesDecrypt(_gOptions.Value.client_id,

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace GptView.ErrorMiddlewares
+namespace GptView.Middlewares
 {
     public class GlobalExceptionHandlerMiddlerware : IMiddleware
     {
@@ -12,7 +12,7 @@ namespace GptView.ErrorMiddlewares
 
         public GlobalExceptionHandlerMiddlerware(ILogger<GlobalExceptionHandlerMiddlerware> logger)
         {
-            _logger = logger;
+            _logger = logger;   
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -23,9 +23,10 @@ namespace GptView.ErrorMiddlewares
             }
             catch(Exception ex)
             {
+                _logger.LogError(ex, "出現異常");
                 Regex regex = new Regex(@"/api/", RegexOptions.IgnoreCase);
                 if (regex.IsMatch(context.Request.Path.Value))
-                {
+                {                   
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     context.Response.ContentType = "application/json";
                     await context.Response.WriteAsJsonAsync
