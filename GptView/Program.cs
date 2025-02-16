@@ -63,8 +63,7 @@ try
 
     // dbcontext
     builder.Services.AddDbContext<GptDBContext>(optionbuilder =>
-    {
-       
+    {    
         // DBÀþ®É¿ù»~­«¸Õ
         optionbuilder.UseSqlServer(connStr, options => options.EnableRetryOnFailure(
             maxRetryCount:5,
