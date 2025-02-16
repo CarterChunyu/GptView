@@ -24,6 +24,7 @@ DesCrytoHelper.TryDesDecrypt
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
     .WriteTo.File(formatter: new Serilog.Formatting.Json.JsonFormatter(),
+        // 注意路徑中的斜線 / 會出現轉義字錯誤 
         path: @"Logs/log_.txt", rollingInterval: RollingInterval.Day)
     .WriteTo.MSSqlServer(connectionString: connStr, sinkOptions: new MSSqlServerSinkOptions { TableName = "serverlogs" })
     .MinimumLevel.Information()
